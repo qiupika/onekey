@@ -9,15 +9,15 @@
    ▀▀▀██   ▀▀▀▀▀▀▀▀  ▀▀    ▀▀   ▄▀▀▀ ██     ▀▀▀▀     ▀▀▀▀    ▀▀    ▀▀   ▄▀▀▀ ██ 
        ▀                        ▀████▀▀                                 ▀████▀▀
 -----------------------------烟雨阁出品一键-------------------------------------
------------------------------原作者：风之凌殇-----------------------------------
+---------------------------特别感谢风之凌殇方案-----------------------------------
 \e[0m\n"
 sleep 5
 echo 开始执行替换魔改互助文件
-wget https://ghproxy.com/https://raw.githubusercontent.com/yanyuwangluo/tuku/main/mogai/task_before.sh -O task_before.sh
+wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/task_before.sh -O task_before.sh
 
-wget https://ghproxy.com/https://raw.githubusercontent.com/yanyuwangluo/tuku/main/mogai/code.sh -O code.sh
+wget https://cdn.jsdelivr.net/gh/qiupika/onekey@raw/main/code.sh -O code.sh
 
-wget https://ghproxy.com/https://raw.githubusercontent.com/yanyuwangluo/tuku/main/mogai/jdCookie.js -O jdCookie.js
+wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/jdCookie.js -O jdCookie.js
 
 echo 下载完成
 
