@@ -15,7 +15,7 @@ sleep 5
 echo 开始执行替换魔改互助文件
 wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/task_before.sh -O task_before.sh
 
-wget https://cdn.jsdelivr.net/gh/qiupika/onekey@raw/main/code.sh -O code.sh
+wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/code.sh -O code.sh
 
 wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/jdCookie.js -O jdCookie.js
 
