@@ -19,6 +19,8 @@ wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/code.sh -O code.sh
 
 wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/jdCookie.js -O jdCookie.js
 
+wget https://cdn.jsdelivr.net/gh/qiupika/onekey@main/config_sample.sh -O config_sample.sh
+
 echo 下载完成
 
 sleep 3
@@ -26,4 +28,4 @@ echo 正在替换jdcookie.js
 
 [[ -f /ql/config/jdCookie.js ]] && find /ql/scripts -type f -name jdCookie.js|xargs -n 1 cp -rf /ql/config/jdCookie.js
 
-echo 执行结束告辞。
+echo 用对比工具替换 config.sh 按需修改 code.sh 执行结束告辞。
