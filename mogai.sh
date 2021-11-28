@@ -28,4 +28,4 @@ echo 正在替换jdcookie.js
 
 [[ -f /ql/config/jdCookie.js ]] && find /ql/scripts -type f -name jdCookie.js|xargs -n 1 cp -rf /ql/config/jdCookie.js
 
-echo 用对比工具替换 config.sh 按需修改 code.sh 执行结束告辞。
+echo 用对比工具按 config_sample.sh格式替换config.sh 按需修改 code.sh 执行结束告辞。
