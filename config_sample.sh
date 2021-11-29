@@ -1,6 +1,6 @@
 ## Version: v2.8.0
 ## Date: 2021-06-20
-## Mod: Build20211127-002
+## Mod: Build20211129-001
 ## Update Content: 可持续发展纲要\n1. session管理破坏性修改\n2. 配置管理可编辑config下文件\n3. 自定义脚本改为查看脚本\n4. 移除互助相关
 
 ## 上面版本号中，如果第2位数字有变化，那么代表增加了新的参数，如果只有第3位数字有变化，仅代表更新了注释，没有增加新的参数，可更新可不更新
@@ -208,7 +208,7 @@ esac
 ###           ②支持黑名单模式(即不使用该模式，详见 局部模式环境变量 recombin_ck_envs 说明)；
 
 ## 11.1 全局模式选项
-### 赋值要求：①只能填 1 2 3 4 ，分别表示随机、优先、轮换、组队四种模式，对全部脚本有效(除非 recombin_ck_envs 另有设定)；
+### 赋值要求：①只能填 1 2 3 4 5，分别表示随机、优先、轮换、组队、分段 5 种模式，对全部脚本有效(除非 recombin_ck_envs 另有设定)；
 ###           ②若填写为其他内容，则全部账号按正常顺序参加活动(除非 recombin_ck_envs 另有设定)；
 Recombin_CK_Mode=""
 
@@ -216,23 +216,30 @@ Recombin_CK_Mode=""
 ### 释义：①在随机模式下：表示随意抽取 N 个账号随机顺序参加活动；
 ###       ②在优先模式和轮换模式下：表示前 N 个账号固定按正常顺序参加活动；
 ###       ③在组队模式下：表示每支队伍的成员数量；
-###       ④在分段模式下：表示每个分段的账号数量；
-### 赋值要求：①只能填不大于 Cookie 总数的正整数，对全部脚本有效(除非 recombin_ck_envs 另有设定)；
-###           ②随机模式和分段模式下：若填写数值大于或等于 Cookie 总数，则全部账号随机顺序参加活动(除非 recombin_ck_envs 另有设定)；
-###           ③若填写为其他内容，则全部账号按正常顺序参加活动(除非 recombin_ck_envs 另有设定)；
+###       ④在分段模式下：表示前 N 个账号固定按正常顺序参加活动；
+### 赋值要求：①只能填不大于 Cookie 总数的 0 或正整数，对全部脚本有效(除非 recombin_ck_envs 另有设定)；
+###           ②随机模式和优先模式下：若填写数值为 0 或大于等于 Cookie 总数，则全部账号随机顺序参加活动；
+###           ③轮换模式下：若填写数值为 0 ，表示全部账号参加轮换；若填写数值为大于等于 Cookie 总数，则全部账号切换回正常顺序参加活动；
+###           ④组队模式下：若填写数值为 0 或其他内容，则全部账号切换回正常顺序参加活动。
+###           ⑤分段模式下：若填写数值为 0 ，表示全部账号参与分段；若填写数值为大于等于 Cookie 总数，则全部账号切换回正常顺序参加活动；
 Recombin_CK_ARG1=""
 
 ### 模式参数 2
-### 释义：①在随机模式和优先模式下：无意义；
+### 释义：①随机模式和优先模式下：无意义；
 ###       ②轮换模式下：表示自定义 N 个账号/天参加轮换；
 ###       ③在组队模式下：表示每个账号发起组队的次数；
 ###       ③在组队模式下：表示每个账号发起组队的次数；
-###       ④在分段模式下：表示每个分段启动活动脚本的延迟时间，单位：秒；
-### 赋值要求：①轮换模式下：只能填不大于参与轮换账号数量(即：总Cookie数量-固定Cookie数量)的正整数，对全部脚本有效(除非 recombin_ck_envs 另有设定)；
-###           ②轮换模式下：若填写为其他内容或留空，则自动调整为按天计算轮换账号的数量(即：轮换账号数量÷当月总天数的商值，取下整数)，对全部脚本有效(除非 recombin_ck_envs 另有设定)；
-###           ③组队模式下：若填写为其他内容或留空，则自动退出模式。
-###           ④分段模式下：若填写为其他内容或留空，则自动退出模式。(为了避免多段并发运行脚本造成死机)；
+###       ④在分段模式下：表示每个分段的账号数量；
+### 赋值要求：①轮换模式下：只能填不大于参与轮换账号数量(即：总Cookie数量-固定Cookie数量)的正整数；
+###           ②轮换模式下：若填写为其他内容或留空，则自动调整为按天计算轮换账号的数量(即：轮换账号数量÷当月总天数的商值，取上整数)；
+###           ③组队模式下：若填写为其他内容或留空，则全部账号切换回正常顺序参加活动。
+###           ④分段模式下：只能填大于固定账号数量且不大于 Cookie 总数的数值。若填写为其他内容或留空，则全部账号切换回正常顺序参加活动。
 Recombin_CK_ARG2=""
+
+## 重组Cookie前是否剔除失效Cookie
+### 释义：①如果开启，会在模式参数已设定的情况下，执行任务前进行 Cookie 有效性验证并剔除失效的 Cookie。受 Cookie 总数量影响任务启动的即时性；
+### 赋值要求：①填 1 表示开启，填其他内容或空值表示关闭；
+Remove_Void_CK=""
 
 ## 11.2 局部模式环境变量
 ### 释义：脚本1文件名关键词@参数1@参数2@参数3@参数4@参数5；
@@ -250,8 +257,9 @@ Recombin_CK_ARG2=""
 ###                                              jd_pigPet@3@5          使用模式：3轮换，前5个CK顺序固定，根据CK总数和当月天数自动计算每天轮换CK数量
 ###                                              jd_plantBean@3@7@4     使用模式：3轮换，前7个CK顺序固定，每天轮换4个CK
 ###                                              jd_jxlhb@4@80@1        使用模式：4组队，队伍成员数量80，每个账号组队1次
-###                                              jd_islogin_xh@5@10@15  使用模式：5分段，每段成员数量10，每段延迟时间为15秒
-# recombin_ck_envs="jd_fruit@2@5&jd_pet@2@5&jd_plantBean@2@5&jd_dreamFactory@2@5&jd_jdfactory@2@5&jd_crazy_joy@2@5&jd_jdzz@2@5&jd_jxnc@2@5&jd_bookshop@2@5&jd_cash@2@5&jd_sgmh@2@5&jd_cfd@2@5&jd_health@2@5&jd_carnivalcity@2@5&jd_city@2@5&jd_moneyTree_heip@2@5&jd_jxlhb@4@80@1&jd_88hb@4@80@1&Check&jd_islogin_xh&bean_change"
+###                                              jd_islogin_xh@5@4@8    使用模式：5分段，前4个CK顺序固定，每段成员数量8，各分段并发执行启动脚本
+###                                              jd_islogin_xh@5@4@8@15 使用模式：5分段，前4个CK顺序固定，每段成员数量8，每段启动脚本的延迟时间为15秒。第四个表示每个分段启动活动脚本的延迟时间，单位：秒；
+# recombin_ck_envs="jd_fruit@2@5&jd_pet@2@5&jd_plantBean@2@5&jd_dreamFactory@2@5&jd_jdfactory@2@5&jd_crazy_joy@2@5&jd_jdzz@2@5&jd_jxnc@2@5&jd_bookshop@2@5&jd_cash@2@5&jd_sgmh@2@5&jd_cfd@2@5&jd_health@2@5&jd_carnivalcity@2@5&jd_city@2@5&jd_moneyTree_heip@2@5&jd_jxlhb@3@5&jd_88hb@3@5&Check&jd_islogin_xh&bean_change&wskey&code"
 
 ## 其他需要的变量，脚本中需要的变量使用 export 变量名= 声明即可
 
@@ -521,7 +529,20 @@ export BEANCHANGE_PERSENT="10" ##10合1
 ### 每月1号17点后如果执行资产查询，开启京东月资产变动的统计和推送.	
 ### 拆分通知和分组通知的变量都可以兼容.	
 ### 标题按照分组分别为 京东月资产变动 京东月资产变动#2 京东月资产变动#3 	
-### 开启 :  export BEANCHANGE_ENABLEMONTH="true"  
+### 开启 :  export BEANCHANGE_ENABLEMONTH="true"
+### 4.BEANCHANGE_ALLNOTIFY
+### 设置推送置顶公告，&表示换行，公告会出现在资产通知中(包括一对一).
+### 	例子 :  export BEANCHANGE_ALLNOTIFY="你好&今天天气不错...&&哥斯拉大战金刚...."  
+### 	显示:
+### 	
+### 	【✨✨✨✨公告✨✨✨✨】
+### 	 你好
+### 	 今天天气不错...
+### 	 
+### 	 哥斯拉大战金刚.... 
+### 5. BEANCHANGE_ENABLEMONTH
+### 当设定BEANCHANGE_ExJxBeans="true"且时间在17点之后，会自动将临期京豆兑换成喜豆续命.
+export BEANCHANGE_ExJxBeans="true"
 ## [3] sendNotify.js
 ### 1. 通知黑名单
 ### 如果通知标题在此变量里面存在（&隔开），则用屏蔽不发送通知，继承Ninja。例：export NOTIFY_SKIP_LIST="京东CK检测&京东资产变动"
@@ -573,8 +594,26 @@ export PUSH_PLUS_USER_hxtrip=""
 export JOY_GET20WHEN16="true"  ##控制16点才触发20京豆兑换.
 ### 13. CK失效时执行脚本
 export NOTIFY_CKTASK="ccwav_QLScript2_jd_CheckCK.js"
-### 14. 开启月结资产推送
-export BEANCHANGE_ENABLEMONTH="true"
+### 14. 用 WxPusher 进行一对一推送
+### 详细教程有人写了，不知道是幸运还是不幸: https://www.kejiwanjia.com/jiaocheng/27909.html
+### 填写变量 WP_APP_TOKEN_ONE,可在管理台查看: https://wxpusher.zjiecode.com/admin/main/app/appToken
+### 手动建立CK_WxPusherUid.json,可以参考CKName_cache.json,只是nickName改成Uid，
+### 每个用户的uid可在管理台查看: https://wxpusher.zjiecode.com/admin/main/wxuser/list
+### 另外: export WP_APP_ONE_TEXTSHOWREMARK="true"，启用一对一推送标题显示备注信息，默认不启用.
+### CK_WxPusherUid.json 内容(pt_pin 如果是汉字需要填写转码后的!):
+### [
+###   {
+### 	"pt_pin": "ccwav",
+### 	"Uid": "UID_AAAAAAAA"
+###   },
+###   {
+### 	"pt_pin": "中文名",
+### 	"Uid": "BBBBBBBBBB"
+###   }
+### ]
+### 15. NOTIFY_SKIP_TEXT
+### 如果此变量(&隔开)的关键字在通知内容里面存在,则屏蔽不发送通知.
+### 例子 :  export NOTIFY_SKIP_TEXT="忘了种植&异常"
 
 
 # X1a0He 环境变量
