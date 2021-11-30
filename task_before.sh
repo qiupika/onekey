@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211129-002
+# Build 20211130-005
 
 name_js=(
   jd_fruit
@@ -100,59 +100,67 @@ var_name=(
 
 local_scr=$1
 
-## 临时屏蔽某账号运行活动脚本(账号序号匹配)
-TempBlock_JD_COOKIE(){
-    source $file_env
-    local envs=$(eval echo "\$JD_COOKIE")
-    local TempBlockCookieInterval="$(echo $TempBlockCookie | perl -pe "{s|~|-|; s|_|-|}" | sed 's/\(\d\+\)-\(\d\+\)/{\1..\2}/g')"
-    local TempBlockCookieArray=($(eval echo $TempBlockCookieInterval))
-    local envs=$(eval echo "\$JD_COOKIE")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    local user_sum=${#array[*]}
-    local m n t
-    for ((m = 1; m <= $user_sum; m++)); do
-        n=$((m - 1))
-        for ((t = 0; t < ${#TempBlockCookieArray[*]}; t++)); do
-            [[ "${TempBlockCookieArray[t]}" = "$m" ]] && unset array[n]
-        done
-    done
-    jdCookie_1=$(echo ${array[*]} | sed 's/\ /\&/g')
-    [[ $jdCookie_1 ]] && export JD_COOKIE="$jdCookie_1"
-    temp_user_sum=${#array[*]}
-}
-
-## 临时屏蔽某账号运行活动脚本(pt_pin匹配)
-TempBlock_JD_PT_PIN(){
-    local tmp_jdCookie i m n t pt_pin_temp pt_pin_temp_block
-    if [[ $jdCookie_1 ]]; then
-        tmp_jdCookie=$jdCookie_1
-    else
+## 临时禁止账号运行活动脚本
+TempBlock_CK(){
+    ## 按 Cookie 序号禁止账号
+    TempBlock_JD_COOKIE(){
+        ## 导入基础 JD_COOKIE 变量
         source $file_env
         tmp_jdCookie=$JD_COOKIE
-    fi
-    local TempBlockPinArray=($TempBlockPin)
-    local envs=$(eval echo "\$tmp_jdCookie")
-    local array=($(echo $envs | sed 's/&/ /g'))
-    for i in "${!array[@]}"; do
-        pt_pin_temp=$(echo ${array[i]} | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
-        [[ $pt_pin_temp == *\\x* ]] && pt_pin[i]=$(printf $pt_pin_temp) || pt_pin[i]=$pt_pin_temp
-        for n in "${!TempBlockPinArray[@]}"; do
-            pt_pin_temp_block=$(echo ${TempBlockPinArray[n]} | perl -pe "{s|%|\\\x|g}")
-            [[ $pt_pin_temp_block == *\\x* ]] && pt_pin_block[n]=$(printf $pt_pin_temp_block) || pt_pin_block[n]=$pt_pin_temp_block
-            [[ "${pt_pin[i]}" =~ "${pt_pin_block[n]}" ]] && unset array[i]
+        local envs=$(eval echo "\$tmp_jdCookie")
+        local array=($(echo $envs | sed 's/&/ /g'))
+        local user_sum=${#array[*]}
+        local TempBlockCookie="$(eval echo $(echo $TempBlockCookie | perl -pe "{s|~\|-|_|g; s|\W+\|[A-Za-z]+| |g; s|(\d+)_(\d+)|{\1..\2}|g;}"))"
+        local TempBlockPin="$(echo $TempBlockPin | perl -pe "{s|,| |g;}")"
+        local TempBlockCookieArray=($TempBlockCookie)
+        local TempBlockPinArray=($TempBlockPin)
+        local i j k m jdCookie_3
+        for ((i = 1; i <= $user_sum; i++)); do
+            j=$((i - 1))
+            for ((k = 0; k < ${#TempBlockCookieArray[*]}; k++)); do
+                [[ "${TempBlockCookieArray[k]}" = "$i" ]] && unset array[j]
+            done
+            pt_pin_temp=$(echo ${array[j]} | perl -pe "{s|.*pt_pin=([^; ]+)(?=;?).*|\1|; s|%|\\\x|g}")
+            [[ $pt_pin_temp == *\\x* ]] && pt_pin[j]=$(printf $pt_pin_temp) || pt_pin[j]=$pt_pin_temp
+            for ((m = 0; m < ${#TempBlockPinArray[*]}; m++)); do
+                pt_pin_temp_block=$(echo ${TempBlockPinArray[m]} | perl -pe "{s|%|\\\x|g}")
+                [[ $pt_pin_temp_block == *\\x* ]] && pt_pin_block[m]=$(printf $pt_pin_temp_block) || pt_pin_block[m]=$pt_pin_temp_block
+                [[ "${pt_pin[j]}" =~ "${pt_pin_block[m]}" ]] && unset array[j]
+            done
         done
-    done
-    jdCookie_2=$(echo ${array[*]} | sed 's/\ /\&/g')
-    [[ $jdCookie_2 ]] && export JD_COOKIE="$jdCookie_2"
-    temp_user_sum=${#array[*]}
+        jdCookie_1=$(echo ${array[*]} | sed 's/\ /\&/g')
+        [[ $jdCookie_1 ]] && export JD_COOKIE="$jdCookie_1"
+        user_sum_1=${#array[*]}
+    }
+
+    local tmp_jdCookie i j k
+    if [ $tempblock_ck_envs ]; then
+        local tempblock_ck_array=($(echo $tempblock_ck_envs | sed 's/&/ /g'))
+        for i in "${!tempblock_ck_array[@]}"; do
+            local tmp_array=($(echo ${tempblock_ck_array[i]}|awk -F "@" '{for(i=1;i<=NF;i++){print $i;}}'))
+            for ((j = 0; j < 3; j++)); do
+                k=$((j + 1))
+                eval local tmp_num_$k="${tmp_array[j]}"
+            done
+            if [[ $local_scr == *$tmp_num_1* ]]; then
+                [[ $(echo $tmp_num_2 | perl -pe "{s|\D||g;}") ]] && TempBlockCookie=$tmp_num_2 || TempBlockCookie=""
+                TempBlockPin=$tmp_num_3
+            fi
+        done
+    fi
+    if [[ $TempBlockCookie ]] || [[ $TempBlockPin ]]; then
+        TempBlock_JD_COOKIE
+    else
+        export JD_COOKIE="$tmp_jdCookie"
+    fi
 }
 
 # Cookie 有效性检查
 check_jd_ck(){
-    test_connect="$(curl -I -s https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
-    test_jd_cookie="$(curl -s --noproxy "*" "https://bean.m.jd.com/bean/signIndex.action" -H "cookie: $1")"
+    local test_connect="$(curl -I -s --connect-timeout 5 --retry 3 --noproxy "*" https://bean.m.jd.com/bean/signIndex.action -w %{http_code} | tail -n1)"
+    local test_jd_cookie="$(curl -s --connect-timeout 5 --retry 3 --noproxy "*" "https://bean.m.jd.com/bean/signIndex.action" -H "cookie: $1")"
     if [ "$test_connect" -eq "302" ]; then
-        [[ "$test_jd_cookie" ]] && return 0 || return 1
+    [[ "$test_jd_cookie" ]] && return 0 || return 1
     else
         return 2
     fi
@@ -160,9 +168,7 @@ check_jd_ck(){
 
 remove_void_ck(){
     local tmp_jdCookie i j void_ck_num
-    if [[ $jdCookie_2 ]]; then
-        tmp_jdCookie=$jdCookie_2
-    elif [[ $jdCookie_1 ]]; then
+    if [[ $jdCookie_1 ]]; then
         tmp_jdCookie=$jdCookie_1
     else
         source $file_env
@@ -181,7 +187,8 @@ remove_void_ck(){
         check_jd_ck ${array[i]}
         [[ $? = 1 ]] && echo -e "\n# 账号$j. ${pt_pin[i]} 已失效" && unset array[i]
     done
-    jdCookie_3=$(echo ${array[*]} | sed 's/\ /\&/g')
+    jdCookie_2=$(echo ${array[*]} | sed 's/\ /\&/g')
+    [[ $jdCookie_2 ]] && export JD_COOKIE="$jdCookie_2"
     void_ck_num=$((user_sum - ${#array[*]}))
     [[ $void_ck_num = 0 ]] && echo "未检查到失效 Cookie 。" || echo -e "# 已剔除以上 $void_ck_num 个失效的 Cookie 。"
     echo -e "# 开始启动任务 ... "
@@ -198,7 +205,7 @@ recombin_ck_args_set(){
                 k=$((j + 1))
                 eval local tmp_num_$k="${tmp_array[j]}"
             done
-            if [[ $local_scr =~ $tmp_num_1 ]]; then
+            if [[ $local_scr == *$tmp_num_1* ]]; then
                 Recombin_CK_Mode="$tmp_num_2"
                 for ((m = 1; m <= 4; m++)); do
                     n=$((m+2))
@@ -350,6 +357,7 @@ Recombin_CK(){
     combine_segmentation(){
         local segment_length="$2"
         local delay_seconds="$3"
+        local interval_seconds="$4"
         local jdCookie_priority jdCookie_team_part jdCookie_4 i j k m n
         if [[ $1 ]] && [[ $(echo $2|grep '[0-9]') ]] && [[ $1 -lt $2 ]]; then
             echo "# 正在应用 分段Cookie 模式..."
@@ -359,8 +367,21 @@ Recombin_CK(){
             echo -n "# 当前总共 $user_sum 个有效账号"
             [[ $1 -ne 0 ]] && echo -n "，其中前 $1 个账号为固定顺序"
             echo -n "。每 $segment_length 个账号分一段，一共分 $team_num 段。"
-            [[ $(echo $3|grep '[0-9]') ]] && [[ $3 -gt 0 ]] && echo -e "各分段启动脚本的延迟时间为 $3 秒。" || { delay_seconds="0"; echo -e "所有分段并发启动脚本，可能会占用较高的系统资源导致卡顿。"; }
-            echo -e "# 注意：如果每段的运行时间较长且延迟时间设定较短，运行日志可能会显示混乱，此为正常现象。"
+            if [[ $(echo $3|grep '[0-9]') ]] && [[ $3 -gt 0 ]]; then
+                temp_status="1"
+                echo -e "各分段启动脚本的延隔时间为 $3 秒。"
+                echo -e "# 注意：如果每段的运行时间较长且延隔时间设定较短，运行日志可能会显示混乱，此为正常现象。"
+            elif [[ $(echo $3|grep '[0-9]') ]] && [[ $3 -eq 0 ]]; then
+                temp_status="2"
+                echo -e "所有分段并发启动脚本，可能会占用较高的系统资源导致卡顿。"
+                echo -e "# 注意：如果每段的运行时间较长且延隔时间设定较短，运行日志可能会显示混乱，此为正常现象。"
+            elif [[ $(echo $4|grep '[0-9]') ]] && [[ $4 -gt 0 ]] && [[ $3 = "-" ]]; then
+                temp_status="3"
+                echo -e "各分段启动脚本的间隔时间为 $4 秒。"
+            else
+                delay_seconds="0"
+                interval_seconds="0"
+            fi
             for ((m = 0; m < $1; m++)); do
                 tmp="${array[m]}"
                 jdCookie_priority="$jdCookie_priority&$tmp"
@@ -378,9 +399,23 @@ Recombin_CK(){
                 jdCookie_4=$(echo $jdCookie_priority$jdCookie_team_part | perl -pe "{s|^&\|&$||g;}")
                 if [[ $jdCookie_4 ]]; then
                     export JD_COOKIE="$jdCookie_4"
-                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
-                    [[ $local_scr =~ ".js" ]] && node /ql/scripts/$local_scr &
-                    sleep $delay_seconds					
+                    if [[ $jdCookie_4 ]]; then
+                        if [[ $local_scr =~ ".js" ]]; then
+                            case $temp_status in
+                                3)
+                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
+                                    node /ql/scripts/$local_scr
+                                    echo -e "# 等待 $interval_seconds 秒后开始进行下一段任务 ..."
+                                    sleep $interval_seconds
+                                    ;;
+                                *)
+                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
+                                    node /ql/scripts/$local_scr &
+                                    sleep $delay_seconds
+                                    ;;
+                            esac
+                        fi
+                    fi
                 fi
             done
         else
@@ -400,9 +435,7 @@ Recombin_CK(){
     fi
 
     ## 导入基础 JD_COOKIE 变量
-    if [[ $jdCookie_3 ]]; then
-        tmp_jdCookie=$jdCookie_3
-    elif [[ $jdCookie_2 ]]; then
+    if [[ $jdCookie_2 ]]; then
         tmp_jdCookie=$jdCookie_2
     elif [[ $jdCookie_1 ]]; then
         tmp_jdCookie=$jdCookie_1
@@ -430,7 +463,7 @@ Recombin_CK(){
             combine_team $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3 $Recombin_CK_ARG4
             ;;
         5)
-            combine_segmentation $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3
+            combine_segmentation $Recombin_CK_ARG1 $Recombin_CK_ARG2 $Recombin_CK_ARG3 $Recombin_CK_ARG4
             ;;
         *)
             export JD_COOKIE="$tmp_jdCookie"
@@ -503,7 +536,7 @@ combine_only() {
     done
 }
 
-TempBlock_JD_COOKIE && TempBlock_JD_PT_PIN && Recombin_CK
+TempBlock_CK && Recombin_CK
 
 combine_only
 
