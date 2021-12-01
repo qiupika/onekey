@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Build 20211130-005
+# Build 20211201-001
 
 name_js=(
   jd_fruit
@@ -106,7 +106,7 @@ TempBlock_CK(){
     TempBlock_JD_COOKIE(){
         ## 导入基础 JD_COOKIE 变量
         source $file_env
-        tmp_jdCookie=$JD_COOKIE
+        local tmp_jdCookie=$JD_COOKIE
         local envs=$(eval echo "\$tmp_jdCookie")
         local array=($(echo $envs | sed 's/&/ /g'))
         local user_sum=${#array[*]}
@@ -133,19 +133,18 @@ TempBlock_CK(){
         user_sum_1=${#array[*]}
     }
 
-    local tmp_jdCookie i j k
+    local i j
     if [ $tempblock_ck_envs ]; then
-        local tempblock_ck_array=($(echo $tempblock_ck_envs | sed 's/&/ /g'))
-        for i in "${!tempblock_ck_array[@]}"; do
-            local tmp_array=($(echo ${tempblock_ck_array[i]}|awk -F "@" '{for(i=1;i<=NF;i++){print $i;}}'))
-            for ((j = 0; j < 3; j++)); do
-                k=$((j + 1))
-                eval local tmp_num_$k="${tmp_array[j]}"
+        local tempblock_ck_array=($(echo $tempblock_ck_envs | perl -pe "{s|&| |g}"))
+        for i in "${tempblock_ck_array[@]}"; do
+            local tmp_task_array=($(echo $i | perl -pe "{s|@| |g}"))
+            local tmp_script_array=($(echo ${tmp_task_array[0]} | perl -pe "{s/\|/ /g}"))
+            for j in ${tmp_script_array[@]}; do
+                if [[ $local_scr == *$j* ]]; then
+                    [[ $(echo ${tmp_task_array[1]} | perl -pe "{s|\D||g;}") ]] && TempBlockCookie=${tmp_task_array[1]} || TempBlockCookie=""
+                    TempBlockPin=${tmp_task_array[2]}
+                fi
             done
-            if [[ $local_scr == *$tmp_num_1* ]]; then
-                [[ $(echo $tmp_num_2 | perl -pe "{s|\D||g;}") ]] && TempBlockCookie=$tmp_num_2 || TempBlockCookie=""
-                TempBlockPin=$tmp_num_3
-            fi
         done
     fi
     if [[ $TempBlockCookie ]] || [[ $TempBlockPin ]]; then
@@ -196,30 +195,38 @@ remove_void_ck(){
 
 ## 重组 CK 基础参数导入
 recombin_ck_args_set(){
-    local i j k m
+    local i j m n
     if [ $recombin_ck_envs ]; then
-        local recombin_ck_array=($(echo $recombin_ck_envs | sed 's/&/ /g'))
-        for i in "${!recombin_ck_array[@]}"; do
-            local tmp_array=($(echo ${recombin_ck_array[i]}|awk -F "@" '{for(i=1;i<=NF;i++){print $i;}}'))
-            for ((j = 0; j < 6; j++)); do
-                k=$((j + 1))
-                eval local tmp_num_$k="${tmp_array[j]}"
+        local recombin_ck_array=($(echo $recombin_ck_envs | perl -pe "{s|&| |g}"))
+        for i in "${recombin_ck_array[@]}"; do
+            local tmp_task_array=($(echo $i | perl -pe "{s|@| |g}"))
+            local tmp_script_array=($(echo ${tmp_task_array[0]} | perl -pe "{s/\|/ /g}"))
+            for j in "${tmp_script_array[@]}"; do
+                if [[ $local_scr == *$j* ]]; then
+                    Recombin_CK_Mode="${tmp_task_array[1]}"
+                    for ((m = 1; m < 5; m++)); do
+                        n=$((m + 1))
+                        eval Recombin_CK_ARG$m="${tmp_task_array[n]}"
+                    done
+                fi
             done
-            if [[ $local_scr == *$tmp_num_1* ]]; then
-                Recombin_CK_Mode="$tmp_num_2"
-                for ((m = 1; m <= 4; m++)); do
-                    n=$((m+2))
-                    eval Recombin_CK_ARG$m="\$tmp_num_$n"
-                done
-            fi
         done
+    fi
+
+    # Recombin_CK_ARG1 参数基本判断
+    if [ $(echo $Recombin_CK_ARG1|grep '[0-9]') ]; then
+        ## 移除无效 Cookie
+        [[ $Remove_Void_CK = 1 ]] && remove_void_ck
+        [[ $user_sum -lt $Recombin_CK_ARG1 || $Recombin_CK_ARG1 -lt 0 ]] && Recombin_CK_ARG1=$user_sum
+    else
+        Recombin_CK_ARG1=""
     fi
 }
 
 Recombin_CK(){
     ## 随机模式算法
     combine_random(){
-        local combined_all ran_sub tmp i
+        local combined_all ran_sub jdCookie_4 tmp i
         if [ $1 ]; then
             echo "# 正在应用 随机Cookie 模式..."
             echo -e "# 当前总共 $user_sum 个有效账号，本次随机抽取 $1 个账号按随机顺序参加活动。"
@@ -239,7 +246,7 @@ Recombin_CK(){
 
     ## 优先模式算法
     combine_priority(){
-        local combined_all ran_sub jdCookie_priority jdCookie_random m n
+        local combined_all ran_sub jdCookie_priority jdCookie_random jdCookie_4 m n
         if [ $1 ]; then
             echo "# 正在应用 优先Cookie 模式..."
             echo -e "# 当前总共 $user_sum 个有效账号，其中前 $1 个账号为固定顺序。\n# 本次从第 $(($1 + 1)) 个账号开始按随机顺序参加活动。"
@@ -269,7 +276,7 @@ Recombin_CK(){
         local today_day=`date +%d`
         # 轮换区的账号数量
         local rot_total_num=$((user_sum - $1))
-        local combined_all jdCookie_priority jdCookie_rot_head jdCookie_rot_mid rot_start_num a b c tmp_1 tmp_2 tmp_3
+        local combined_all rot_num rot_start_num jdCookie_priority jdCookie_rot_head jdCookie_rot_mid jdCookie_4 tmp_1 tmp_2 tmp_3 a b c
         if [[ $1 ]] && [[ $today_day -gt 1 ]]; then
             echo "# 正在应用 轮换Cookie 模式..."
             if [[ $rot_total_num -gt 2 ]]; then
@@ -297,6 +304,9 @@ Recombin_CK(){
                 echo "# 由于参加轮换的账号数量不足 2 个，切换回 正常 Cookie 模式..."
                 export JD_COOKIE="$tmp_jdCookie"
             fi
+        elif [[ $1 ]] && [[ $today_day -eq 1 ]]; then
+            echo "# 今天是 1 号，不应用轮换模式，全部 Cookie 按正常顺序参加活动，..."
+            export JD_COOKIE="$tmp_jdCookie"
         else
             echo "# 由于参数缺失，切换回 正常 Cookie 模式..."
             export JD_COOKIE="$tmp_jdCookie"
@@ -363,10 +373,10 @@ Recombin_CK(){
             echo "# 正在应用 分段Cookie 模式..."
             [[ $user_sum -lt $segment_length ]] && segment_length=$user_sum
             local team_length="$((segment_length - $1))"
-            local team_num=$(((user_sum - $1 + team_length -1)/team_length)) && [[ $team_num -lt 1 ]] && team_num=1
+            local team_total_num=$(((user_sum - $1 + team_length -1)/team_length)) && [[ $team_total_num -lt 1 ]] && team_total_num=1
             echo -n "# 当前总共 $user_sum 个有效账号"
             [[ $1 -ne 0 ]] && echo -n "，其中前 $1 个账号为固定顺序"
-            echo -n "。每 $segment_length 个账号分一段，一共分 $team_num 段。"
+            echo -n "。每 $segment_length 个账号分一段，一共分 $team_total_num 段。"
             if [[ $(echo $3|grep '[0-9]') ]] && [[ $3 -gt 0 ]]; then
                 temp_status="1"
                 echo -e "各分段启动脚本的延隔时间为 $3 秒。"
@@ -386,7 +396,7 @@ Recombin_CK(){
                 tmp="${array[m]}"
                 jdCookie_priority="$jdCookie_priority&$tmp"
             done
-            for ((i = 0; i < $team_num; i++)); do
+            for ((i = 0; i < $team_total_num; i++)); do
                 j=$((i + 1))
                 m=$((team_length * i + $1))
                 n=$((team_length * j + $1))
@@ -403,13 +413,13 @@ Recombin_CK(){
                         if [[ $local_scr =~ ".js" ]]; then
                             case $temp_status in
                                 3)
-                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
+                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "# 本次提交的是第 $((m + 1)) - $n 位账号。"
                                     node /ql/scripts/$local_scr
                                     echo -e "# 等待 $interval_seconds 秒后开始进行下一段任务 ..."
                                     sleep $interval_seconds
                                     ;;
                                 *)
-                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "本次提交的是第 $((m + 1)) - $n 位账号。"
+                                    [[ $1 -ne 0  ]] && echo -e "# 本次提交的是前 $1 位账号及第 $((m + 1)) - $n 位账号。" || echo -e "# 本次提交的是第 $((m + 1)) - $n 位账号。"
                                     node /ql/scripts/$local_scr &
                                     sleep $delay_seconds
                                     ;;
@@ -424,16 +434,7 @@ Recombin_CK(){
         fi
     }
 
-    local tmp_jdCookie jdCookie_3
-    recombin_ck_args_set # 基础参数设定
-    
-    if [ $(echo $Recombin_CK_ARG1|grep '[0-9]') ]; then
-        ## 移除无效 Cookie
-        [[ $Remove_Void_CK = 1 ]] && remove_void_ck
-    else
-        Recombin_CK_ARG1=""
-    fi
-
+    local tmp_jdCookie
     ## 导入基础 JD_COOKIE 变量
     if [[ $jdCookie_2 ]]; then
         tmp_jdCookie=$jdCookie_2
@@ -443,11 +444,11 @@ Recombin_CK(){
         source $file_env
         tmp_jdCookie=$JD_COOKIE
     fi
-
     local envs=$(eval echo "\$tmp_jdCookie")
     local array=($(echo $envs | sed 's/&/ /g'))
     local user_sum=${#array[*]}
-    [[ $user_sum -lt $Recombin_CK_ARG1 || $Recombin_CK_ARG1 -lt 0 ]] && Recombin_CK_ARG1=$user_sum
+
+    recombin_ck_args_set # 基础参数设定
 
     case $Recombin_CK_Mode in
         1)
