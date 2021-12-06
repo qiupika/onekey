@@ -5,6 +5,5 @@ sudo docker exec -it QL99 bash -c "cd /ql/scripts/ && wget https://cdn.jsdelivr.
 
 
 
-docker exec -it qinglong bash
+docker exec -it qinglong bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/qiupika/onekey@main/newyilai.sh  | sh)"
 
-curl -fsSL https://cdn.jsdelivr.net/gh/qiupika/onekey@main/newyilai.sh | sh
