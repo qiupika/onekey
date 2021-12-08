@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Build 20211207-002-test
+## Build 20211208-001-test
 
 ## 导入通用变量与函数
 dir_shell=/ql/shell
@@ -41,7 +41,7 @@ CLEANBAK_DAYS="2"
 HelpType=""
 
 ## 定义前 N 个账号优先助力，N 个以后账号间随机助力。front_num="N"，N 定义值小于账号总数，当HelpType 赋值 3 或 4 时有效
-front_num=""
+front_num="5"
 
 ## 定义指定活动采用指定的互助模板。
 ## 设定值为 DiyHelpType="1" 表示启用功能；不填或填其他内容表示不开启功能。
@@ -143,7 +143,7 @@ name_js=(
   "$repo"_jd_health
   "$repo"_jd_carnivalcity
   "$repo"_jd_city
-  "$repo"_jd_moneyTree_heip
+  "$repo"_jd_moneyTree_he?p
   "$repo"_jd_cfd
 )
 
@@ -738,7 +738,7 @@ install_node_dependencies_all(){
         done
     }
 
-    #cnpm install -g cnpm
+    cnpm install -g cnpm
     [[ $(npm ls cnpm -g) =~ (empty) ]] && npm install cnpm -g
     for i in $package_name; do
         install_node_dependencie $i
@@ -755,9 +755,6 @@ kill_proc(){
 }
 
 batch_deps_scripts(){
-    GithubNoProxyUrl="https://raw.githubusercontent.com/"
-    GithubProxyUrl="https://cdn.jsdelivr.net/gh/"
-    
     switch_status=(
       on
       on
@@ -770,18 +767,29 @@ batch_deps_scripts(){
       JD_DailyBonus.js
     )
     
+    test_connect(){
+        curl -o /dev/null -s -w %{http_code} $1
+    }
+
+    get_remote_filesize(){
+        curl -sI $1 | grep -i Content-Length | awk '{print $2}'
+    }
+
+    get_local_filesize(){
+       stat -c %s $1
+    }
+    
     scripts_source=(
       https://cdn.jsdelivr.net/gh/ccwav/QLScript2@main/ql.js
       https://cdn.jsdelivr.net/gh/ccwav/QLScript2@main/sendNotify.js
       https://cdn.jsdelivr.net/gh/NobyDa/Script@master/JD-DailyBonus/JD_DailyBonus.js
     )
     
-    test_connect(){
-        curl -o /dev/null -s -w %{http_code} $1
-    }
-    
     download_scripts(){
-        [[ "$(test_connect $1)" -eq "200" ]] && curl -C - -s --connect-timeout 5 --retry 3 --noproxy "*" $1 -o $dir_config/$2
+        if [[ "$(test_connect $1)" -eq "200" ]]; then
+           curl -C - -s --connect-timeout 5 --retry 3 --noproxy "*" $1 -o $dir_config/tmp_$2
+           [[ $(get_remote_filesize $1) -eq $(get_local_filesize $dir_config/tmp_$2 ) ]] && mv -f $dir_config/tmp_$2 $dir_config/$2 || rm -rf $dir_config/tmp_$2
+        fi
     }
     
     for ((i = 0; i < ${#scripts_source[*]}; i++)); do
