@@ -67,15 +67,14 @@ function Main() {
             if [[ ${TimeDifference} -lt ${TimeError} ]]; then
                 echo -e "\n\033[32m------------ 同步完成 ------------\033[0m\n"
                 if [ -s /etc/apt/sources.list ]; then
-                    apt-get install -y figlet toilet >/dev/null
-                    local ExitStatus=$?
+                    apt-get install -y figlet toilet >/dev/null 2>&1
                 else
-                    local ExitStatus=1
+                    yum install -y figlet toilet >/dev/null 2>&1
                 fi
-                if [ $ExitStatus -eq 0 ]; then
-                    echo -e "$(toilet -f slant -F border --gay SuperManito)\n"
+                if [ -x /usr/bin/toilet ]; then
+                    echo -e "\n$(toilet -f slant -F border --gay SuperManito)\n"
                 else
-                    echo -e '\033[35m    _____                       __  ___            _ __       \033[0m'
+                    echo -e '\n\033[35m    _____                       __  ___            _ __       \033[0m'
                     echo -e '\033[31m   / ___/__  ______  ___  _____/  |/  /___ _____  (_) /_____  \033[0m'
                     echo -e '\033[33m   \__ \/ / / / __ \/ _ \/ ___/ /|_/ / __ `/ __ \/ / __/ __ \ \033[0m'
                     echo -e '\033[32m  ___/ / /_/ / /_/ /  __/ /  / /  / / /_/ / / / / / /_/ /_/ / \033[0m'
